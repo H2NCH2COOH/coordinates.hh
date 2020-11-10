@@ -33,6 +33,12 @@ namespace {
       using type = std::conditional_t<std::is_base_of_v<Attr<Slot>, A>, append_t<A, rest>, rest>;
    };
 
+   template<typename Slot, typename... As> struct one_or_none_attr {
+      static_assert(get_attr_t<Slot, As...>::size == 0 || get_attr_t<Slot, As...>::size == 1, "Can't have more than one");
+      using type = get_t<get_attr_t<Slot, As...>, 0>;
+   };
+   template<typename Slot, typename... As> using one_or_none_attr_t = typename one_or_none_attr<Slot, As...>::type;
+
    [[maybe_unused]] struct {
       static_assert(List<>::size == 0);
       static_assert(List<int>::size == 1);
@@ -49,6 +55,7 @@ namespace {
    // Attr Slots
    namespace AttrSlot {
       struct Direction;
+      struct Name;
    }
 }
 
@@ -58,17 +65,19 @@ namespace CoordinateAttr {
       using from = From;
       using to = To;
    };
+
+   template<const char* N> struct Name : Attr<AttrSlot::Name> {
+      static constexpr char* name = N;
+   };
 }
 
 template<typename V, typename... Attrs> struct Coordinate {
    static_assert(std::is_integral_v<V> && std::is_signed_v<V>,
                  "Coordinate must be based on a signed integral type");
+   using ValueType = V;
 
-   static_assert(get_attr_t<AttrSlot::Direction, Attrs...>::size == 0 ||
-                 get_attr_t<AttrSlot::Direction, Attrs...>::size == 1,
-                 "Coordinate can have at most one diection");
-
-   using Direction = get_t<get_attr_t<AttrSlot::Direction, Attrs...>, 0>;
+   using Direction = one_or_none_attr_t<AttrSlot::Direction, Attrs...>;
+   using Name = one_or_none_attr_t<AttrSlot::Name, Attrs...>;
 
    V value;
 
