@@ -16,7 +16,7 @@ namespace {
       using type = T;
    };
 
-   struct Optional {
+   struct Option {
       struct None : Value<false> {};
       template<typename T> struct Some : Value<true>, Type<T> {};
    };
@@ -27,21 +27,51 @@ namespace {
 
    template<typename L, size_t idx> struct get;
    template<typename L, size_t idx> using get_t = typename get<L, idx>::type;
-   template<size_t idx> struct get<List<>, idx> : Type<Optional::None> {};
-   template<typename T, typename... Ts> struct get<List<T, Ts...>, 0> : Type<Optional::Some<T>> {};
+   template<size_t idx> struct get<List<>, idx> : Type<Option::None> {};
+   template<typename T, typename... Ts> struct get<List<T, Ts...>, 0> : Type<Option::Some<T>> {};
    template<typename T, typename... Ts, size_t idx> struct get<List<T, Ts...>, idx> : Type<get_t<List<Ts...>, idx - 1>> {};
 
    template<typename T, typename L> struct append;
    template<typename T, typename L> using append_t = typename append<T, L>::type;
    template<typename T, typename... Ts> struct append<T, List<Ts...>> : Type<List<T, Ts...>> {};
 
+   template<typename... Ts> struct same;
+   template<typename... Ts> inline constexpr bool same_v = same<Ts...>::value;
+   template<typename T1, typename T2> struct same<T1, T2> :
+      std::is_same<typename T1::type, typename T2::type> {};
+   template<typename T1, typename T2, typename... Ts> struct same<T1, T2, Ts...> :
+      std::conjunction<same<T1, T2>, same<T2, Ts...>> {};
+
+   template<typename... Ts> struct different;
+   template<typename... Ts> inline constexpr bool different_v = different<Ts...>::value;
+   template<typename T1, typename T2> struct different<T1, T2> :
+      std::negation<std::is_same<typename T1::type, typename T2::type>> {};
+   template<typename T1, typename T2, typename... Ts> struct different<T1, T2, Ts...> :
+      std::conjunction<different<T1, T2>, different<T1, Ts...>, different<T2, Ts...>> {};
+
    // Tests
+   static_assert(Option::Some<int>::value);
+   static_assert(!Option::None::value);
    static_assert(List<>::size == 0);
    static_assert(List<int>::size == 1);
    static_assert(List<int, int>::size == 2);
    static_assert(get_t<List<int>, 0>::value == true);
    static_assert(get_t<List<int>, 1>::value == false);
    static_assert(std::is_same_v<get_t<List<int, float>, 1>::type, float>);
+   static_assert(same_v<Type<int>, Type<int>>);
+   static_assert(!same_v<Type<int>, Type<float>>);
+   static_assert(same_v<Type<int>, Type<int>, Type<int>>);
+   static_assert(!same_v<Type<int>, Type<float>, Type<int>>);
+   static_assert(same_v<Type<int>, Type<int>, Type<int>, Type<int>>);
+   static_assert(!same_v<Type<int>, Type<int>, Type<int>, Type<float>>);
+   static_assert(different_v<Type<int>, Type<float>>);
+   static_assert(!different_v<Type<int>, Type<int>>);
+   static_assert(different_v<Type<int>, Type<float>, Type<bool>>);
+   static_assert(!different_v<Type<int>, Type<int>, Type<bool>>);
+   static_assert(different_v<Type<int>, Type<float>, Type<bool>, Type<void>>);
+   static_assert(!different_v<Type<int>, Type<float>, Type<bool>, Type<int>>);
+   static_assert(different_v<Type<int>, Type<float>, Type<bool>, Type<void>, Type<long>>);
+   static_assert(!different_v<Type<int>, Type<float>, Type<bool>, Type<int>, Type<float>>);
 };
 
 // Attribute
@@ -64,18 +94,11 @@ namespace {
       Require<get_attr_t<Slot, As...>::size <= 1> {};
    template<typename Slot, typename... As> using optional_attr_t = typename optional_attr<Slot, As...>::type;
 
-   template<template<typename> typename F, typename... Ts> struct all : Value<std::conjunction_v<F<Ts>...>> {};
-   template<template<typename> typename F, typename... Ts> inline constexpr bool all_v = all<F, Ts...>::value;
-
-   template<template<typename> typename F, typename... Ts> struct any : Value<std::disjunction_v<F<Ts>...>> {};
-   template<template<typename> typename F, typename... Ts> inline constexpr bool any_v = any<F, Ts...>::value;
-
    // Tests
    static_assert(std::is_same_v<get_attr_t<int, Attr<void>>, List<>>);
    static_assert(std::is_same_v<get_attr_t<int, Attr<int>>, List<Attr<int>>>);
    static_assert(std::is_same_v<get_attr_t<int, Attr<int>, Attr<void>, Attr<int>>, List<Attr<int>, Attr<int>>>);
    static_assert(get_attr_t<int, Attr<int>, Attr<void>, Attr<int>>::size == 2);
-
 }
 
 namespace {
@@ -162,5 +185,12 @@ template<typename V, typename... Attrs> struct Coordinate {
 template<typename... Cs> struct Vec {
    std::tuple<Cs...> s;
 
-   static_assert(std::conjunction_v<typename Cs::Name...> || std::conjunction_v<std::negation<typename Cs::Name>...>, "All or none of the coordinates must have name");
+   template<typename T> struct access_name : Type<typename T::type::name> {};
+
+   static_assert(std::disjunction_v<
+      std::conjunction<
+         std::conjunction<typename Cs::Name...>,
+         different<access_name<typename Cs::Name>...>>,
+      std::conjunction<std::negation<typename Cs::Name>...>>,
+      "Coordinates must all have different names or all have no name");
 };
