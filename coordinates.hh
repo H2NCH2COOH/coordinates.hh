@@ -76,7 +76,9 @@ namespace {
    static_assert(std::is_same_v<get_attr_t<int, Attr<int>, Attr<void>, Attr<int>>, List<Attr<int>, Attr<int>>>);
    static_assert(get_attr_t<int, Attr<int>, Attr<void>, Attr<int>>::size == 2);
 
-   // Attr Slots
+}
+
+namespace {
    namespace AttrSlot {
       struct Direction;
       struct Name;
