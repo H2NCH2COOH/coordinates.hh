@@ -49,14 +49,20 @@ namespace {
    template<typename T1, typename T2, typename... Ts> struct different<T1, T2, Ts...> :
       std::conjunction<different<T1, T2>, different<T1, Ts...>, different<T2, Ts...>> {};
 
+   template<template<typename> typename F, typename... Ts> struct first;
+   template<template<typename> typename F, typename... Ts> using first_t = typename first<F, Ts...>::type;
+   template<template<typename> typename F> struct first<F> : Type<Option::None> {};
+   template<template<typename> typename F, typename T, typename... Ts> struct first<F, T, Ts...> :
+      std::conditional<F<T>::value, Option::Some<T>, first_t<F, Ts...>> {};
+
    // Tests
    static_assert(Option::Some<int>::value);
    static_assert(!Option::None::value);
    static_assert(List<>::size == 0);
    static_assert(List<int>::size == 1);
    static_assert(List<int, int>::size == 2);
-   static_assert(get_t<List<int>, 0>::value == true);
-   static_assert(get_t<List<int>, 1>::value == false);
+   static_assert(get_t<List<int>, 0>::value);
+   static_assert(!get_t<List<int>, 1>::value);
    static_assert(std::is_same_v<get_t<List<int, float>, 1>::type, float>);
    static_assert(same_v<Type<int>, Type<int>>);
    static_assert(!same_v<Type<int>, Type<float>>);
@@ -72,6 +78,8 @@ namespace {
    static_assert(!different_v<Type<int>, Type<float>, Type<bool>, Type<int>>);
    static_assert(different_v<Type<int>, Type<float>, Type<bool>, Type<void>, Type<long>>);
    static_assert(!different_v<Type<int>, Type<float>, Type<bool>, Type<int>, Type<float>>);
+   static_assert(same_v<first_t<std::is_integral, void, double, int, float, long>, Type<int>>);
+   static_assert(!first_t<std::is_integral, void, float, char*>::value);
 };
 
 // Attribute
@@ -193,4 +201,12 @@ template<typename... Cs> struct Vec {
          different<access_name<typename Cs::Name>...>>,
       std::conjunction<std::negation<typename Cs::Name>...>>,
       "Coordinates must all have different names or all have no name");
+
+
+   template<typename Name> struct filter_name {
+      template<typename T> struct f : std::is_same<Name, typename T::Name::type::name> {};
+   };
+   template<typename Name> constexpr auto& operator[](const Name&) const noexcept {
+      return std::get<first_t<filter_name<Name>::f, Cs...>::type>(s);
+   }
 };
