@@ -99,6 +99,22 @@ namespace {
    template<typename... Ts> constexpr std::tuple<Ts...> operator-(const std::tuple<Ts...>& left, const std::tuple<Ts...>& right) noexcept {
       return minus_tuple(left, right, std::index_sequence_for<Ts...>{});
    }
+
+   template<typename T, typename... Ts, std::size_t... Is> constexpr std::tuple<Ts...> mult_tuple_by(const std::tuple<Ts...>& left, const T& fac, std::index_sequence<Is...>) {
+      return std::tuple{ std::get<Is>(left) * fac... };
+   }
+
+   template<typename T, typename... Ts> constexpr std::tuple<Ts...> operator*(const std::tuple<Ts...>& t, const T& fac) noexcept {
+      return mult_tuple_by(t, fac, std::index_sequence_for<Ts...>{});
+   }
+
+   template<typename T, typename... Ts, std::size_t... Is> constexpr std::tuple<Ts...> div_tuple_by(const std::tuple<Ts...>& left, const T& fac, std::index_sequence<Is...>) {
+      return std::tuple{ std::get<Is>(left) / fac... };
+   }
+
+   template<typename T, typename... Ts> constexpr std::tuple<Ts...> operator/(const std::tuple<Ts...>& t, const T& fac) noexcept {
+      return div_tuple_by(t, fac, std::index_sequence_for<Ts...>{});
+   }
 }
 
 // Attribute
@@ -188,36 +204,6 @@ template<typename V, typename... Attrs> struct Coordinate {
       return Coordinate(value - that.value);
    }
 
-   Coordinate& operator+=(const V v) noexcept {
-      value += v;
-      return *this;
-   }
-
-   Coordinate& operator-=(const V v) noexcept {
-      value -= v;
-      return *this;
-   }
-
-   Coordinate& operator+=(const Coordinate& that) noexcept {
-      value += that.value;
-      return *this;
-   }
-
-   Coordinate& operator-=(const Coordinate& that) noexcept {
-      value -= that.value;
-      return *this;
-   }
-
-   Coordinate& operator*=(const double factor) noexcept {
-      value = static_cast<int>(value * factor);
-      return *this;
-   }
-
-   Coordinate& operator/=(const double factor) noexcept {
-      value = static_cast<int>(value / factor);
-      return *this;
-   }
-
    constexpr bool operator==(const Coordinate& that) const noexcept {
       return value == that.value;
    }
@@ -287,5 +273,13 @@ template<typename... Cs> struct Vec {
 
    constexpr Vec operator-(const Vec& that) const noexcept {
       return Vec(s - that.s);
+   }
+
+   constexpr Vec operator*(const double factor) const noexcept {
+      return Vec(s * factor);
+   }
+
+   constexpr Vec operator/(const double factor) const noexcept {
+      return Vec(s / factor);
    }
 };
