@@ -10,18 +10,21 @@ struct Right;
 struct Top;
 struct Bottom;
 
-struct X;
-struct Y;
+struct {} X;
+struct {} Y;
 
-using C1 = struct Coordinate<int, CoordinateAttr::Direction<Left, Right>, CoordinateAttr::Name<X>>;
-using C2 = struct Coordinate<int, CoordinateAttr::Direction<Top, Bottom>, CoordinateAttr::Name<Y>>;
+using C1 = struct Coordinate<int, CoordinateAttr::Direction<Left, Right>, CoordinateAttr::Name<decltype(X)>>;
+using C2 = struct Coordinate<int, CoordinateAttr::Direction<Top, Bottom>, CoordinateAttr::Name<decltype(Y)>>;
 
 using V1 = struct Vec<C1, C2>;
 
 int main() {
-   C1 c1;
-   C1 c2;
-   V1 v1;
+   constexpr C1 c1(1);
+   constexpr C1 c2(2);
+   constexpr V1 v1(1, 2);
+
+   static_assert(v1[X] == 1);
+   static_assert(v1[Y] == 2);
 
    return 0;
 }

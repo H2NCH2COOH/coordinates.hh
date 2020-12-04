@@ -202,11 +202,14 @@ template<typename... Cs> struct Vec {
       std::conjunction<std::negation<typename Cs::Name>...>>,
       "Coordinates must all have different names or all have no name");
 
+   constexpr Vec() noexcept : s() {};
+   constexpr Vec(Cs... args) noexcept : s(std::make_tuple(args...)) {};
 
    template<typename Name> struct filter_name {
-      template<typename T> struct f : std::is_same<Name, typename T::Name::type::name> {};
+      template<typename T> struct then : Value<std::is_same_v<Name, typename T::Name::type::name>> {};
    };
+
    template<typename Name> constexpr auto& operator[](const Name&) const noexcept {
-      return std::get<first_t<filter_name<Name>::f, Cs...>::type>(s);
+      return std::get<typename first_t<filter_name<Name>::template then, Cs...>::type>(s);
    }
 };
