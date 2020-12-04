@@ -188,28 +188,54 @@ template<typename V, typename... Attrs> struct Coordinate {
    constexpr bool operator!=(const Coordinate& that) const noexcept {
       return value != that.value;
    }
+
+   template<typename D> struct _PH_test_dir : Value<std::is_same_v<D, typename Direction::type::from> || std::is_same_v<D, typename Direction::type::to>> {};
+
+   template<typename D> constexpr std::enable_if_t<
+      std::conjunction_v<
+         Direction,
+         _PH_test_dir<D>>,
+   bool> of(const Coordinate& that) const noexcept {
+      if constexpr (std::is_same_v<D, typename Direction::type::to>) {
+         return value > that.value;
+      } else {
+         return value < that.value;
+      }
+   }
+
+   template<typename D> constexpr std::enable_if_t<
+      std::conjunction_v<
+         Direction,
+         _PH_test_dir<D>>,
+   Coordinate> go(const V v) const noexcept {
+      if constexpr (std::is_same_v<D, typename Direction::type::to>) {
+         return value + v;
+      } else {
+         return value - v;
+      }
+   }
 };
 
 template<typename... Cs> struct Vec {
    std::tuple<Cs...> s;
 
-   template<typename T> struct access_name : Type<typename T::type::name> {};
+   template<typename T> struct _PH_access_name : Type<typename T::type::name> {};
 
    static_assert(std::disjunction_v<
       std::conjunction<
          std::conjunction<typename Cs::Name...>,
-         different<access_name<typename Cs::Name>...>>,
+         different<_PH_access_name<typename Cs::Name>...>>,
       std::conjunction<std::negation<typename Cs::Name>...>>,
       "Coordinates must all have different names or all have no name");
 
    constexpr Vec() noexcept : s() {};
    constexpr Vec(Cs... args) noexcept : s(std::make_tuple(args...)) {};
 
-   template<typename Name> struct filter_name {
+   template<typename Name> struct _PH_filter_name {
       template<typename T> struct then : Value<std::is_same_v<Name, typename T::Name::type::name>> {};
    };
 
    template<typename Name> constexpr auto& operator[](const Name&) const noexcept {
-      return std::get<typename first_t<filter_name<Name>::template then, Cs...>::type>(s);
+      return std::get<typename first_t<_PH_filter_name<Name>::template then, Cs...>::type>(s);
    }
 };
