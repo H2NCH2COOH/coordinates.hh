@@ -82,6 +82,25 @@ namespace {
    static_assert(!first_t<std::is_integral, void, float, char*>::value);
 };
 
+// Tuple Ext
+namespace {
+   template<typename... Ts, std::size_t... Is> constexpr std::tuple<Ts...> add_tuple(const std::tuple<Ts...>& left, const std::tuple<Ts...>& right, std::index_sequence<Is...>) {
+      return std::tuple{ std::get<Is>(left) + std::get<Is>(right)... };
+   }
+
+   template<typename... Ts> constexpr std::tuple<Ts...> operator+(const std::tuple<Ts...>& left, const std::tuple<Ts...>& right) noexcept {
+      return add_tuple(left, right, std::index_sequence_for<Ts...>{});
+   }
+
+   template<typename... Ts, std::size_t... Is> constexpr std::tuple<Ts...> minus_tuple(const std::tuple<Ts...>& left, const std::tuple<Ts...>& right, std::index_sequence<Is...>) {
+      return std::tuple{ std::get<Is>(left) - std::get<Is>(right)... };
+   }
+
+   template<typename... Ts> constexpr std::tuple<Ts...> operator-(const std::tuple<Ts...>& left, const std::tuple<Ts...>& right) noexcept {
+      return minus_tuple(left, right, std::index_sequence_for<Ts...>{});
+   }
+}
+
 // Attribute
 namespace {
    template<typename Slot> struct Attr {};
@@ -161,6 +180,14 @@ template<typename V, typename... Attrs> struct Coordinate {
       return Coordinate(static_cast<V>(value / factor));
    }
 
+   constexpr Coordinate operator+(const Coordinate& that) const noexcept {
+      return Coordinate(value + that.value);
+   }
+
+   constexpr Coordinate operator-(const Coordinate& that) const noexcept {
+      return Coordinate(value - that.value);
+   }
+
    Coordinate& operator+=(const V v) noexcept {
       value += v;
       return *this;
@@ -168,6 +195,16 @@ template<typename V, typename... Attrs> struct Coordinate {
 
    Coordinate& operator-=(const V v) noexcept {
       value -= v;
+      return *this;
+   }
+
+   Coordinate& operator+=(const Coordinate& that) noexcept {
+      value += that.value;
+      return *this;
+   }
+
+   Coordinate& operator-=(const Coordinate& that) noexcept {
+      value -= that.value;
       return *this;
    }
 
@@ -229,6 +266,7 @@ template<typename... Cs> struct Vec {
       "Coordinates must all have different names or all have no name");
 
    constexpr Vec() noexcept : s() {};
+   constexpr Vec(const std::tuple<Cs...> t) noexcept : s(t) {};
    constexpr Vec(Cs... args) noexcept : s(std::make_tuple(args...)) {};
 
    template<typename Name> struct _PH_filter_name {
@@ -237,5 +275,17 @@ template<typename... Cs> struct Vec {
 
    template<typename Name> constexpr auto& operator[](const Name&) const noexcept {
       return std::get<typename first_t<_PH_filter_name<Name>::template then, Cs...>::type>(s);
+   }
+
+   constexpr bool operator==(const Vec& that) const noexcept {
+      return s == that.s;
+   }
+
+   constexpr Vec operator+(const Vec& that) const noexcept {
+      return Vec(s + that.s);
+   }
+
+   constexpr Vec operator-(const Vec& that) const noexcept {
+      return Vec(s - that.s);
    }
 };

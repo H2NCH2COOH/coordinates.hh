@@ -31,6 +31,9 @@ int main() {
    static_assert(C2(0).go<Bottom>(1) == 1);
    static_assert(v1[X] == 1);
    static_assert(v1[Y] == 2);
+   static_assert(v1[Y] == 2);
+   static_assert(v1 + V1(2, 1) == V1(3, 3));
+   static_assert(v1 - V1(1, 2) == V1());
 
    return 0;
 }
