@@ -1,5 +1,5 @@
 #if 0
-g++ -Wall -O2 -std=c++17 -S $0
+c++ -Wall -O2 -std=c++17 -S $0
 exit
 #endif
 

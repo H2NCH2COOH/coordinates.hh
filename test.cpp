@@ -1,5 +1,5 @@
 #if 0
-g++ -Wall -std=c++17 -o /dev/null $0
+c++ -Wall -std=c++17 -o /dev/null $0
 exit
 #endif
 
