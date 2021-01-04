@@ -291,3 +291,21 @@ template<typename... Cs> struct Vec {
       return Vec(s / factor);
    }
 };
+
+template<typename O, typename... Cs> struct Point {
+   Vec<Cs...> vec;
+
+   using Origin = O;
+
+   constexpr Point() noexcept : vec() {};
+   constexpr Point(Vec<Cs...> vec) noexcept : vec(vec) {};
+   constexpr Point(Cs... args) noexcept : vec(args...) {};
+
+   template<typename Name> constexpr auto& operator[](const Name& name) const noexcept {
+      return vec[name];
+   }
+
+   template<size_t idx> constexpr auto& get() const noexcept {
+      return vec.Vec<Cs...>::template get<idx>();
+   }
+};
