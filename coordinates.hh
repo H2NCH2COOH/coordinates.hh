@@ -243,6 +243,10 @@ template<typename V, typename... Attrs> struct Coordinate {
    }
 };
 
+template<typename V, typename... Attrs> constexpr Coordinate<V, Attrs...> operator*(const double factor, const Coordinate<V, Attrs...>& coor) noexcept {
+   return coor * factor;
+}
+
 template<typename... Cs> struct Vec {
    std::tuple<Cs...> s;
 
@@ -275,6 +279,10 @@ template<typename... Cs> struct Vec {
       return s == that.s;
    }
 
+   constexpr bool operator!=(const Vec& that) const noexcept {
+      return s != that.s;
+   }
+
    constexpr Vec operator+(const Vec& that) const noexcept {
       return Vec(s + that.s);
    }
@@ -292,6 +300,10 @@ template<typename... Cs> struct Vec {
    }
 };
 
+template<typename... Cs> constexpr Vec<Cs...> operator*(const double factor, const Vec<Cs...>& vec) noexcept {
+   return vec * factor;
+}
+
 template<typename O, typename... Cs> struct Point {
    Vec<Cs...> vec;
 
@@ -308,4 +320,32 @@ template<typename O, typename... Cs> struct Point {
    template<size_t idx> constexpr auto& get() const noexcept {
       return vec.Vec<Cs...>::template get<idx>();
    }
+
+   constexpr Point go(const Vec<Cs...>& v) const noexcept {
+      return Point(vec + v);
+   }
+
+   constexpr Point operator+(const Vec<Cs...>& v) const noexcept {
+      return go(v);
+   }
+
+   constexpr Vec<Cs...> to(const Point& other) const noexcept {
+      return vec - other.vec;
+   }
+
+   constexpr Vec<Cs...> operator-(const Point& other) const noexcept {
+      return to(other);
+   }
+
+   constexpr bool operator==(const Point& other) const noexcept {
+      return vec == other.vec;
+   }
+
+   constexpr bool operator!=(const Point& other) const noexcept {
+      return vec != other.vec;
+   }
 };
+
+template<typename O, typename... Cs> constexpr Point<O, Cs...> operator+(const Vec<Cs...>& vec, const Point<O, Cs...>& point) noexcept {
+   return point + vec;
+}
