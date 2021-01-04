@@ -226,6 +226,10 @@ template<typename V, typename... Attrs> struct Coordinate {
       }
    }
 
+   template<typename D> constexpr bool goes() const noexcept {
+      return of<D>(0);
+   }
+
    template<typename D> constexpr std::enable_if_t<
       std::conjunction_v<
          Direction,
@@ -261,6 +265,10 @@ template<typename... Cs> struct Vec {
 
    template<typename Name> constexpr auto& operator[](const Name&) const noexcept {
       return std::get<typename first_t<_PH_filter_name<Name>::template then, Cs...>::type>(s);
+   }
+
+   template<size_t idx> constexpr auto& get() const noexcept {
+      return std::get<idx>(s);
    }
 
    constexpr bool operator==(const Vec& that) const noexcept {
