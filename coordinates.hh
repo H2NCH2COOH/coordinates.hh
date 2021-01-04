@@ -321,12 +321,16 @@ template<typename O, typename... Cs> struct Point {
       return vec.Vec<Cs...>::template get<idx>();
    }
 
-   constexpr Point go(const Vec<Cs...>& v) const noexcept {
+   constexpr Point operator+(const Vec<Cs...>& v) const noexcept {
       return Point(vec + v);
    }
 
-   constexpr Point operator+(const Vec<Cs...>& v) const noexcept {
-      return go(v);
+   constexpr Point operator-(const Vec<Cs...>& v) const noexcept {
+      return Point(vec - v);
+   }
+
+   constexpr Point go(const Vec<Cs...>& v) const noexcept {
+      return Point(vec + v);
    }
 
    constexpr Vec<Cs...> to(const Point& other) const noexcept {
