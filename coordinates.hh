@@ -275,6 +275,10 @@ template<typename... Cs> struct Vec {
       return std::get<idx>(s);
    }
 
+   constexpr Vec operator-() const noexcept {
+      return Vec() - *this;
+   }
+
    constexpr bool operator==(const Vec& that) const noexcept {
       return s == that.s;
    }
@@ -330,15 +334,15 @@ template<typename O, typename... Cs> struct Point {
    }
 
    constexpr Point go(const Vec<Cs...>& v) const noexcept {
-      return Point(vec + v);
-   }
-
-   constexpr Vec<Cs...> to(const Point& other) const noexcept {
-      return vec - other.vec;
+      return *this + v;
    }
 
    constexpr Vec<Cs...> operator-(const Point& other) const noexcept {
-      return to(other);
+      return vec - other.vec;
+   }
+
+   constexpr Vec<Cs...> to(const Point& other) const noexcept {
+      return *this - other;
    }
 
    constexpr bool operator==(const Point& other) const noexcept {

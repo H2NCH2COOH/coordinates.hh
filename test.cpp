@@ -32,6 +32,7 @@ int main() {
    constexpr V1 v1(1, 2);
    constexpr PA pa(1, 2);
 
+   static_assert(-c1 == -1);
    static_assert(C1(1).of<Left>(2));
    static_assert(C1(2).of<Right>(1));
    static_assert(C2(0).go<Top>(1) == -1);
@@ -42,6 +43,7 @@ int main() {
 
    static_assert(v1[X] == 1);
    static_assert(v1[Y] == 2);
+   static_assert(-v1 == V1(-1, -2));
    static_assert(v1.get<0>() == 1);
    static_assert(v1.get<1>() == 2);
    static_assert(v1[X].goes<Right>());
@@ -58,6 +60,7 @@ int main() {
    static_assert(pa.get<1>() == 2);
 
    static_assert(pa.go(v1)[X] == 2);
+   static_assert(pa.to(PA(1, 1)) == V1(0, 1));
    static_assert(PA(1, 1) - V1(0, 1) == PA(1, 0));
    static_assert(PA(1, 1) + V1(1, 2) == PA(2, 3));
    static_assert(PA(2, 2) - PA(1, 1) == V1(1, 1));
