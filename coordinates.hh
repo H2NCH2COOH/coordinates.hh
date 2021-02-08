@@ -357,3 +357,21 @@ template<typename O, typename... Cs> struct Point {
 template<typename O, typename... Cs> constexpr Point<O, Cs...> operator+(const Vec<Cs...>& vec, const Point<O, Cs...>& point) noexcept {
    return point + vec;
 }
+
+template<typename O, typename... Cs> struct ContinuousSet {
+   Point<O, Cs...> base;
+   Vec<Cs...> vec;
+
+   constexpr ContinuousSet() noexcept {};
+   constexpr ContinuousSet(const Point<O, Cs...>& base, const Vec<Cs...>& vec) noexcept : base(base), vec(vec) {};
+   constexpr ContinuousSet(const Point<O, Cs...>& base, const Cs&... cs) noexcept : base(base), vec(cs...) {};
+   constexpr ContinuousSet(const Cs&... baseCs, const Cs&... cs) noexcept : base(baseCs...), vec(cs...) {};
+
+   constexpr bool operator==(const ContinuousSet& other) const noexcept {
+      return base == other.base && vec == other.vec;
+   }
+
+   constexpr bool operator!=(const ContinuousSet& other) const noexcept {
+      return base != other.base || vec != other.vec;
+   }
+};
