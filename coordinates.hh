@@ -360,36 +360,32 @@ template<typename O, typename... Cs> constexpr Point<O, Cs...> operator+(const V
 
 template<typename O, typename... Cs> struct ContinuousSet {
    Point<O, Cs...> base;
-   Vec<Cs...> vec;
+   std::tuple<typename Cs::ValueType...> cnts;
+
+   static constexpr bool _PH_tuple_any_zero(const std::tuple<typename Cs::ValueType...>& t) noexcept {
+      return std::apply([](const typename Cs::ValueType&... is) -> bool {
+         return ((is == 0) || ...);
+      }, t);
+   }
+
+   struct NegativeCountError {};
+   static constexpr std::tuple<typename Cs::ValueType...> _PH_tuple_no_neg(const std::tuple<typename Cs::ValueType...>& t) {
+      std::apply([](const typename Cs::ValueType&... is) {
+         if (((is < 0) || ...)) {
+            throw NegativeCountError();
+         }
+      }, t);
+      return t;
+   }
 
    constexpr ContinuousSet() noexcept {}
-
-   constexpr bool _PH_vec_any_zero(const Vec<Cs...>& v) noexcept {
-      return std::apply([](const Cs&... cs) -> bool {
-         return ((cs.value == 0) || ...);
-      }, v.s);
-   }
-
-   constexpr Vec<Cs...> _PH_vec_filter_neg_map_abs(const Vec<Cs...>& v) noexcept {
-      return std::apply([](const Cs&... cs) -> auto {
-         return Vec<Cs...>(((cs.value < 0)? -cs : 0)...);
-      }, v.s);
-   }
-
-   constexpr ContinuousSet(const Point<O, Cs...>& b, const Vec<Cs...>& v) noexcept :
-      base(
-         (_PH_vec_any_zero(v)?
-            Point<O, Cs...>() :
-            Point<O, Cs...>(b.vec - _PH_vec_filter_neg_map_abs(v)))),
-      vec(
-         (_PH_vec_any_zero(v)?
-            Vec<Cs...>() :
-            v + _PH_vec_filter_neg_map_abs(v) + _PH_vec_filter_neg_map_abs(v))) {}
-
-   constexpr ContinuousSet(const Point<O, Cs...>& base, const Cs&... cs) noexcept : ContinuousSet(base, Vec<Cs...>(cs...)) {}
-   constexpr ContinuousSet(const Cs&... baseCs, const Cs&... cs) noexcept : ContinuousSet(Point<O, Cs...>(baseCs...), cs...) {}
+   constexpr ContinuousSet(const Point<O, Cs...>& b, const std::tuple<typename Cs::ValueType...>& cnts) :
+      base(_PH_tuple_any_zero(cnts)? Point<O, Cs...>() : b),
+      cnts(_PH_tuple_any_zero(_PH_tuple_no_neg(cnts))? std::tuple<typename Cs::ValueType...>() : cnts) {}
+   constexpr ContinuousSet(const Point<O, Cs...>& base, const typename Cs::ValueType&... cnts) noexcept : ContinuousSet(base, std::make_tuple(cnts...)) {}
+   constexpr ContinuousSet(const Cs&... baseCs, const typename Cs::ValueType&... cnts) noexcept : ContinuousSet(Point<O, Cs...>(baseCs...), cnts...) {}
 
    constexpr bool operator==(const ContinuousSet& other) const noexcept {
-      return base == other.base && vec == other.vec;
+      return base == other.base && cnts == other.cnts;
    }
 };

@@ -33,9 +33,8 @@ int main() {
    constexpr V1 v1(1, 2);
    constexpr PA pa(1, 2);
    constexpr RectA ra0;
-   constexpr RectA ra1(PA(1, 1), V1(1, 1));
-   constexpr RectA ra2(PA(1, 1), 1, 1);
-   constexpr RectA ra3(1, 1, 1, 1);
+   constexpr RectA ra1(PA(1, 1), 1, 1);
+   constexpr RectA ra2(1, 1, 1, 1);
 
    static_assert(-c1 == -1);
    static_assert(c2 != 1);
@@ -74,7 +73,6 @@ int main() {
 
    static_assert(ra0 == RectA(1, 2, 3, 0));
    static_assert(ra1 == ra2);
-   static_assert(ra2 == ra3);
 
    return 0;
 }
