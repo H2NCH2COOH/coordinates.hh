@@ -173,8 +173,8 @@ template<typename V, typename... Attrs> struct Coordinate {
 
    V value;
 
-   constexpr Coordinate() noexcept : value(0) {};
-   constexpr Coordinate(const V v) noexcept : value(v) {};
+   constexpr Coordinate() noexcept : value(0) {}
+   constexpr Coordinate(const V v) noexcept : value(v) {}
 
    constexpr Coordinate operator-() const noexcept {
       return Coordinate(-value);
@@ -259,9 +259,9 @@ template<typename... Cs> struct Vec {
       std::conjunction<std::negation<typename Cs::Name>...>>,
       "Coordinates must all have different names or all have no name");
 
-   constexpr Vec() noexcept : s() {};
-   constexpr Vec(const std::tuple<Cs...> t) noexcept : s(t) {};
-   constexpr Vec(Cs... args) noexcept : s(std::make_tuple(args...)) {};
+   constexpr Vec() noexcept : s() {}
+   constexpr Vec(const std::tuple<Cs...> t) noexcept : s(t) {}
+   constexpr Vec(Cs... args) noexcept : s(std::make_tuple(args...)) {}
 
    template<typename Name> struct _PH_filter_name {
       template<typename T> struct then : Value<std::is_same_v<Name, typename T::Name::type::name>> {};
@@ -313,9 +313,9 @@ template<typename O, typename... Cs> struct Point {
 
    using Origin = O;
 
-   constexpr Point() noexcept : vec() {};
-   constexpr Point(Vec<Cs...> vec) noexcept : vec(vec) {};
-   constexpr Point(Cs... args) noexcept : vec(args...) {};
+   constexpr Point() noexcept : vec() {}
+   constexpr Point(Vec<Cs...> vec) noexcept : vec(vec) {}
+   constexpr Point(Cs... args) noexcept : vec(args...) {}
 
    template<typename Name> constexpr auto& operator[](const Name& name) const noexcept {
       return vec[name];
@@ -362,16 +362,34 @@ template<typename O, typename... Cs> struct ContinuousSet {
    Point<O, Cs...> base;
    Vec<Cs...> vec;
 
-   constexpr ContinuousSet() noexcept {};
-   constexpr ContinuousSet(const Point<O, Cs...>& base, const Vec<Cs...>& vec) noexcept : base(base), vec(vec) {};
-   constexpr ContinuousSet(const Point<O, Cs...>& base, const Cs&... cs) noexcept : base(base), vec(cs...) {};
-   constexpr ContinuousSet(const Cs&... baseCs, const Cs&... cs) noexcept : base(baseCs...), vec(cs...) {};
+   constexpr ContinuousSet() noexcept {}
+
+   constexpr bool _PH_vec_any_zero(const Vec<Cs...>& v) noexcept {
+      return std::apply([](const Cs&... cs) -> bool {
+         return ((cs.value == 0) || ...);
+      }, v.s);
+   }
+
+   constexpr Vec<Cs...> _PH_vec_filter_neg_map_abs(const Vec<Cs...>& v) noexcept {
+      return std::apply([](const Cs&... cs) -> auto {
+         return Vec<Cs...>(((cs.value < 0)? -cs : 0)...);
+      }, v.s);
+   }
+
+   constexpr ContinuousSet(const Point<O, Cs...>& b, const Vec<Cs...>& v) noexcept :
+      base(
+         (_PH_vec_any_zero(v)?
+            Point<O, Cs...>() :
+            Point<O, Cs...>(b.vec - _PH_vec_filter_neg_map_abs(v)))),
+      vec(
+         (_PH_vec_any_zero(v)?
+            Vec<Cs...>() :
+            v + _PH_vec_filter_neg_map_abs(v) + _PH_vec_filter_neg_map_abs(v))) {}
+
+   constexpr ContinuousSet(const Point<O, Cs...>& base, const Cs&... cs) noexcept : ContinuousSet(base, Vec<Cs...>(cs...)) {}
+   constexpr ContinuousSet(const Cs&... baseCs, const Cs&... cs) noexcept : ContinuousSet(Point<O, Cs...>(baseCs...), cs...) {}
 
    constexpr bool operator==(const ContinuousSet& other) const noexcept {
       return base == other.base && vec == other.vec;
-   }
-
-   constexpr bool operator!=(const ContinuousSet& other) const noexcept {
-      return base != other.base || vec != other.vec;
    }
 };
