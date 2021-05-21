@@ -234,10 +234,6 @@ template<typename V, typename... Attrs> struct Coordinate {
       }
    }
 
-   template<typename D> constexpr bool goes() const noexcept {
-      return of<D>(0);
-   }
-
    template<typename D> constexpr std::enable_if_t<
       std::conjunction_v<
          Direction,

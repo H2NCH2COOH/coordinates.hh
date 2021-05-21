@@ -51,8 +51,6 @@ int main() {
    static_assert(-v1 == V1(-1, -2));
    static_assert(v1.get<0>() == 1);
    static_assert(v1.get<1>() == 2);
-   static_assert(v1[X].goes<Right>());
-   static_assert(v1[Y].goes<Bottom>());
    static_assert(v1 + V1(2, 1) == V1(3, 3));
    static_assert(v1 - V1(1, 2) == V1());
    static_assert(V1(1, 2) * 2 == V1(2, 4));
