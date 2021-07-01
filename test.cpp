@@ -69,5 +69,10 @@ int main() {
    static_assert(PA(2, 2) - PA(1, 1) == V1(1, 1));
    static_assert(pa - PA(1, 1) + PA(1, 1) == pa);
 
+   static_assert(ra0 == RectA(PA(0, 1), 0, 1));
+   static_assert(RectA(PA(), 0, 13).empty());
+   static_assert(RectA(PA(1, 5), 5, 0) == RectA(4, 2, 0, 1));
+   static_assert(RectA(PA(1, 1), 1, 1) + V1(1, 2) == RectA(2, 3, 1, 1));
+
    return 0;
 }

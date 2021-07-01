@@ -386,8 +386,8 @@ template<typename O, typename... Cs> struct ContinuousSet {
    constexpr ContinuousSet(const Point<O, Cs...>& b, const std::tuple<typename Cs::ValueType...>& cnts) :
       base(_PH_tuple_any_zero(cnts)? Point<O, Cs...>() : b),
       cnts(_PH_tuple_any_zero(_PH_tuple_no_neg(cnts))? std::tuple<typename Cs::ValueType...>() : cnts) {}
-   // constexpr ContinuousSet(const Point<O, Cs...>& base, const typename Cs::ValueType&... cnts) : ContinuousSet(base, std::make_tuple(cnts...)) {}
-   // constexpr ContinuousSet(const Cs&... baseCs, const typename Cs::ValueType&... cnts) : ContinuousSet(Point<O, Cs...>(baseCs...), cnts...) {}
+   constexpr ContinuousSet(const Point<O, Cs...>& b, const typename Cs::ValueType&... cnts) : ContinuousSet(b, std::make_tuple(cnts...)) {}
+   constexpr ContinuousSet(const Cs&... baseCs, const typename Cs::ValueType&... cnts) : ContinuousSet(Point<O, Cs...>(baseCs...), cnts...) {}
 
    constexpr bool operator==(const ContinuousSet& other) const noexcept {
       return base == other.base && cnts == other.cnts;
