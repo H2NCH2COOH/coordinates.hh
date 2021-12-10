@@ -416,4 +416,16 @@ template<typename O, typename... Cs> struct ContinuousSet {
          return ContinuousSet(base - vec, cnts);
       }
    }
+
+   constexpr ContinuousSet operator*(const double factor) const noexcept {
+       if (empty()) {
+           return ContinuousSet();
+       } else {
+           return ContinuousSet(base, cnts * factor);
+       }
+   }
 };
+
+template<typename O, typename... Cs> constexpr ContinuousSet<O, Cs...> operator*(const double factor, const ContinuousSet<O, Cs...>& cs) noexcept {
+    return cs * factor;
+}

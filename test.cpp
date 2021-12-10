@@ -1,5 +1,5 @@
 #if 0
-c++ -Wall -std=c++17 -o /dev/null $0
+c++ -Wall -Wextra -c -std=c++17 -o /dev/null $0
 exit
 #endif
 
@@ -73,6 +73,8 @@ int main() {
    static_assert(RectA(PA(), 0, 13).empty());
    static_assert(RectA(PA(1, 5), 5, 0) == RectA(4, 2, 0, 1));
    static_assert(RectA(PA(1, 1), 1, 1) + V1(1, 2) == RectA(2, 3, 1, 1));
+   static_assert(RectA(PA(1, 1), 1, 2) * 2 == RectA(1, 1, 2, 4));
+   static_assert(0.5 * RectA(PA(1, 1), 3, 2) == RectA(1, 1, 1, 1));
 
    return 0;
 }
