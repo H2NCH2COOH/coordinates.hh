@@ -31,9 +31,9 @@ namespace {
    template<typename T, typename... Ts> struct get<List<T, Ts...>, 0> : Type<Option::Some<T>> {};
    template<typename T, typename... Ts, size_t idx> struct get<List<T, Ts...>, idx> : Type<get_t<List<Ts...>, idx - 1>> {};
 
-   template<typename T, typename L> struct append;
-   template<typename T, typename L> using append_t = typename append<T, L>::type;
-   template<typename T, typename... Ts> struct append<T, List<Ts...>> : Type<List<T, Ts...>> {};
+   template<typename T, typename L> struct cons;
+   template<typename T, typename L> using cons_t = typename cons<T, L>::type;
+   template<typename T, typename... Ts> struct cons<T, List<Ts...>> : Type<List<T, Ts...>> {};
 
    template<typename... Ts> struct same;
    template<typename... Ts> inline constexpr bool same_v = same<Ts...>::value;
@@ -128,7 +128,7 @@ namespace {
       Type<
          std::conditional_t<
             std::is_base_of_v<Attr<Slot>, A>,
-            append_t<A, get_attr_t<Slot, As...>>,
+            cons_t<A, get_attr_t<Slot, As...>>,
             get_attr_t<Slot, As...>>> {};
 
    template<typename Slot, typename... As> struct optional_attr :
