@@ -362,7 +362,7 @@ template<typename O, typename... Cs> constexpr Point<O, Cs...> operator+(const V
    return point + vec;
 }
 
-template<typename O, typename... Cs> struct ContinuousSet {
+template<typename O, typename... Cs> struct Orthotope {
    Point<O, Cs...> base;
    std::tuple<typename Cs::ValueType...> cnts;
 
@@ -382,18 +382,18 @@ template<typename O, typename... Cs> struct ContinuousSet {
       return t;
    }
 
-   constexpr ContinuousSet() noexcept {}
-   constexpr ContinuousSet(const Point<O, Cs...>& b, const std::tuple<typename Cs::ValueType...>& cnts) :
+   constexpr Orthotope() noexcept {}
+   constexpr Orthotope(const Point<O, Cs...>& b, const std::tuple<typename Cs::ValueType...>& cnts) :
       base(_PH_tuple_any_zero(cnts)? Point<O, Cs...>() : b),
       cnts(_PH_tuple_any_zero(_PH_tuple_no_neg(cnts))? std::tuple<typename Cs::ValueType...>() : cnts) {}
-   constexpr ContinuousSet(const Point<O, Cs...>& b, const typename Cs::ValueType&... cnts) : ContinuousSet(b, std::make_tuple(cnts...)) {}
-   constexpr ContinuousSet(const Cs&... baseCs, const typename Cs::ValueType&... cnts) : ContinuousSet(Point<O, Cs...>(baseCs...), cnts...) {}
+   constexpr Orthotope(const Point<O, Cs...>& b, const typename Cs::ValueType&... cnts) : Orthotope(b, std::make_tuple(cnts...)) {}
+   constexpr Orthotope(const Cs&... baseCs, const typename Cs::ValueType&... cnts) : Orthotope(Point<O, Cs...>(baseCs...), cnts...) {}
 
-   constexpr bool operator==(const ContinuousSet& other) const noexcept {
+   constexpr bool operator==(const Orthotope& other) const noexcept {
       return base == other.base && cnts == other.cnts;
    }
 
-   constexpr bool operator!=(const ContinuousSet& other) const noexcept {
+   constexpr bool operator!=(const Orthotope& other) const noexcept {
       return base != other.base || cnts == other.cnts;
    }
 
@@ -401,31 +401,31 @@ template<typename O, typename... Cs> struct ContinuousSet {
       return std::get<0>(cnts) == 0;
    }
 
-   constexpr ContinuousSet operator+(const Vec<Cs...>& vec) const noexcept {
+   constexpr Orthotope operator+(const Vec<Cs...>& vec) const noexcept {
       if (empty()) {
-         return ContinuousSet();
+         return Orthotope();
       } else {
-         return ContinuousSet(base + vec, cnts);
+         return Orthotope(base + vec, cnts);
       }
    }
 
-   constexpr ContinuousSet operator-(const Vec<Cs...>& vec) const noexcept {
+   constexpr Orthotope operator-(const Vec<Cs...>& vec) const noexcept {
       if (empty()) {
-         return ContinuousSet();
+         return Orthotope();
       } else {
-         return ContinuousSet(base - vec, cnts);
+         return Orthotope(base - vec, cnts);
       }
    }
 
-   constexpr ContinuousSet operator*(const double factor) const noexcept {
+   constexpr Orthotope operator*(const double factor) const noexcept {
        if (empty()) {
-           return ContinuousSet();
+           return Orthotope();
        } else {
-           return ContinuousSet(base, cnts * factor);
+           return Orthotope(base, cnts * factor);
        }
    }
 };
 
-template<typename O, typename... Cs> constexpr ContinuousSet<O, Cs...> operator*(const double factor, const ContinuousSet<O, Cs...>& cs) noexcept {
+template<typename O, typename... Cs> constexpr Orthotope<O, Cs...> operator*(const double factor, const Orthotope<O, Cs...>& cs) noexcept {
     return cs * factor;
 }

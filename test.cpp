@@ -24,8 +24,8 @@ struct OriginB;
 using PA = struct Point<OriginA, C1, C2>;
 using PB = struct Point<OriginB, C1, C2>;
 
-using RectA = struct ContinuousSet<OriginA, C1, C2>;
-using RectB = struct ContinuousSet<OriginB, C1, C2>;
+using RectA = struct Orthotope<OriginA, C1, C2>;
+using RectB = struct Orthotope<OriginB, C1, C2>;
 
 int main() {
    constexpr C1 c1(1);
